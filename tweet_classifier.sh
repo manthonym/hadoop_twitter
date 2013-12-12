@@ -31,12 +31,6 @@ if [ "x$alg" != "xclean" ]; then
   echo "creating work directory at ${WORK_DIR}"
 
   mkdir -p ${WORK_DIR}
-  if [ ! -e ${WORK_DIR}/20news-bayesinput ]; then
-    if [ ! -e ${WORK_DIR}/20news-bydate ]; then
-      if [ ! -f ${WORK_DIR}/20news-bydate.tar.gz ]; then
-        fi
-    fi
-  fi
 fi
 #echo $START_PATH
 cd $START_PATH
@@ -52,30 +46,26 @@ if [ "x$alg" == "xnaivebayes"  -o  "x$alg" == "xcnaivebayes" ]; then
   fi
 
   set -x
-  echo "Preparing EDF data"
-  rm -rf ${WORK_DIR}/edf-all
-  mkdir ${WORK_DIR}/edf-all
-  cp -R ${WORK_DIR}/edf-bydate/*/* ${WORK_DIR}/edf-all
 
   echo "Creating sequence files from 20newsgroups data"
-  ./root/mahout_git/mahout/bin/mahout seqdirectory \
-    -i ${WORK_DIR}/edf-all \
+  /root/mahout_git/mahout/bin/mahout seqdirectory \
+    -i /root/mvn/mahout \
     -o ${WORK_DIR}/edf-seq -ow
 
   echo "Converting sequence files to vectors"
-  ./root/mahout_git/mahout/bin/mahout seq2sparse \
+  /root/mahout_git/mahout/bin/mahout seq2sparse \
     -i ${WORK_DIR}/edf-seq \
     -o ${WORK_DIR}/edf-vectors  -lnorm -nv  -wt tfidf
 
   echo "Creating training and holdout set with a random 80-20 split of the generated vector dataset"
-  ./root/mahout_git/mahout/bin/mahout split \
+  /root/mahout_git/mahout/bin/mahout split \
     -i ${WORK_DIR}/edf-vectors/tfidf-vectors \
     --trainingOutput ${WORK_DIR}/edf-train-vectors \
     --testOutput ${WORK_DIR}/edf-test-vectors  \
     --randomSelectionPct 40 --overwrite --sequenceFiles -xm sequential
 
   echo "Training Naive Bayes model"
-  ./root/mahout_git/mahout/bin/mahout trainnb \
+  /root/mahout_git/mahout/bin/mahout trainnb \
     -i ${WORK_DIR}/edf-train-vectors -el \
     -o ${WORK_DIR}/model \
     -li ${WORK_DIR}/labelindex \
@@ -83,7 +73,7 @@ if [ "x$alg" == "xnaivebayes"  -o  "x$alg" == "xcnaivebayes" ]; then
 
   echo "Self testing on training set"
 
-  ./root/mahout_git/mahout/bin/mahout testnb \
+  /root/mahout_git/mahout/bin/mahout testnb \
     -i ${WORK_DIR}/edf-train-vectors\
     -m ${WORK_DIR}/model \
     -l ${WORK_DIR}/labelindex \
@@ -91,7 +81,7 @@ if [ "x$alg" == "xnaivebayes"  -o  "x$alg" == "xcnaivebayes" ]; then
 
   echo "Testing on holdout set"
 
-  ./root/mahout_git/mahout/bin/mahout testnb \
+  /root/mahout_git/mahout/bin/mahout testnb \
     -i ${WORK_DIR}/edf-test-vectors\
     -m ${WORK_DIR}/model \
     -l ${WORK_DIR}/labelindex \
@@ -100,11 +90,12 @@ if [ "x$alg" == "xnaivebayes"  -o  "x$alg" == "xcnaivebayes" ]; then
 elif [ "x$alg" == "xsgd" ]; then
   if [ ! -e "/tmp/news-group.model" ]; then
     echo "Training on ${WORK_DIR}/edf-bydate/edf-bydate-train/"
-    ./root/mahout_git/mahout/bin/mahout org.apache.mahout.classifier.sgd.TrainNewsGroups ${WORK_DIR}/edf-bydate/edf-bydate-train/
+    /root/mahout_git/mahout/bin/mahout org.apache.mahout.classifier.sgd.TrainNewsGroups ${WORK_DIR}/edf-bydate/edf-bydate-train/
   fi
   echo "Testing on ${WORK_DIR}/edf-bydate/edf-bydate-test/ with model: /tmp/edf.model"
-  ./root/mahout_git/mahout/bin/mahout org.apache.mahout.classifier.sgd.TestNewsGroups --input ${WORK_DIR}/edf-bydate/edf-bydate-test/ --model /tmp/edf.model
+  /root/mahout_git/mahout/bin/mahout org.apache.mahout.classifier.sgd.TestNewsGroups --input ${WORK_DIR}/edf-bydate/edf-bydate-test/ --model /tmp/edf.model
 elif [ "x$alg" == "xclean" ]; then
+  echo "End"
 fi
 # Remove the work directory
 #

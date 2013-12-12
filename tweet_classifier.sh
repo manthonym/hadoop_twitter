@@ -34,12 +34,7 @@ if [ "x$alg" != "xclean" ]; then
   if [ ! -e ${WORK_DIR}/20news-bayesinput ]; then
     if [ ! -e ${WORK_DIR}/20news-bydate ]; then
       if [ ! -f ${WORK_DIR}/20news-bydate.tar.gz ]; then
-        echo "Downloading 20news-bydate"
-        curl http://people.csail.mit.edu/jrennie/20Newsgroups/20news-bydate.tar.gz -o ${WORK_DIR}/20news-bydate.tar.gz
-      fi
-      mkdir -p ${WORK_DIR}/20news-bydate
-      echo "Extracting..."
-      cd ${WORK_DIR}/20news-bydate && tar xzf ../20news-bydate.tar.gz && cd .. && cd ..
+        fi
     fi
   fi
 fi
@@ -57,61 +52,59 @@ if [ "x$alg" == "xnaivebayes"  -o  "x$alg" == "xcnaivebayes" ]; then
   fi
 
   set -x
-  echo "Preparing 20newsgroups data"
-  rm -rf ${WORK_DIR}/20news-all
-  mkdir ${WORK_DIR}/20news-all
-  cp -R ${WORK_DIR}/20news-bydate/*/* ${WORK_DIR}/20news-all
+  echo "Preparing EDF data"
+  rm -rf ${WORK_DIR}/edf-all
+  mkdir ${WORK_DIR}/edf-all
+  cp -R ${WORK_DIR}/edf-bydate/*/* ${WORK_DIR}/edf-all
 
   echo "Creating sequence files from 20newsgroups data"
-  ./bin/mahout seqdirectory \
-    -i ${WORK_DIR}/20news-all \
-    -o ${WORK_DIR}/20news-seq -ow
+  ./root/mahout_git/mahout/bin/mahout seqdirectory \
+    -i ${WORK_DIR}/edf-all \
+    -o ${WORK_DIR}/edf-seq -ow
 
   echo "Converting sequence files to vectors"
-  ./bin/mahout seq2sparse \
-    -i ${WORK_DIR}/20news-seq \
-    -o ${WORK_DIR}/20news-vectors  -lnorm -nv  -wt tfidf
+  ./root/mahout_git/mahout/bin/mahout seq2sparse \
+    -i ${WORK_DIR}/edf-seq \
+    -o ${WORK_DIR}/edf-vectors  -lnorm -nv  -wt tfidf
 
   echo "Creating training and holdout set with a random 80-20 split of the generated vector dataset"
-  ./bin/mahout split \
-    -i ${WORK_DIR}/20news-vectors/tfidf-vectors \
-    --trainingOutput ${WORK_DIR}/20news-train-vectors \
-    --testOutput ${WORK_DIR}/20news-test-vectors  \
+  ./root/mahout_git/mahout/bin/mahout split \
+    -i ${WORK_DIR}/edf-vectors/tfidf-vectors \
+    --trainingOutput ${WORK_DIR}/edf-train-vectors \
+    --testOutput ${WORK_DIR}/edf-test-vectors  \
     --randomSelectionPct 40 --overwrite --sequenceFiles -xm sequential
 
   echo "Training Naive Bayes model"
-  ./bin/mahout trainnb \
-    -i ${WORK_DIR}/20news-train-vectors -el \
+  ./root/mahout_git/mahout/bin/mahout trainnb \
+    -i ${WORK_DIR}/edf-train-vectors -el \
     -o ${WORK_DIR}/model \
     -li ${WORK_DIR}/labelindex \
     -ow $c
 
   echo "Self testing on training set"
 
-  ./bin/mahout testnb \
-    -i ${WORK_DIR}/20news-train-vectors\
+  ./root/mahout_git/mahout/bin/mahout testnb \
+    -i ${WORK_DIR}/edf-train-vectors\
     -m ${WORK_DIR}/model \
     -l ${WORK_DIR}/labelindex \
-    -ow -o ${WORK_DIR}/20news-testing $c
+    -ow -o ${WORK_DIR}/edf-testing $c
 
   echo "Testing on holdout set"
 
-  ./bin/mahout testnb \
-    -i ${WORK_DIR}/20news-test-vectors\
+  ./root/mahout_git/mahout/bin/mahout testnb \
+    -i ${WORK_DIR}/edf-test-vectors\
     -m ${WORK_DIR}/model \
     -l ${WORK_DIR}/labelindex \
-    -ow -o ${WORK_DIR}/20news-testing $c
+    -ow -o ${WORK_DIR}/edf-testing $c
 
 elif [ "x$alg" == "xsgd" ]; then
   if [ ! -e "/tmp/news-group.model" ]; then
-    echo "Training on ${WORK_DIR}/20news-bydate/20news-bydate-train/"
-    ./bin/mahout org.apache.mahout.classifier.sgd.TrainNewsGroups ${WORK_DIR}/20news-bydate/20news-bydate-train/
+    echo "Training on ${WORK_DIR}/edf-bydate/edf-bydate-train/"
+    ./root/mahout_git/mahout/bin/mahout org.apache.mahout.classifier.sgd.TrainNewsGroups ${WORK_DIR}/edf-bydate/edf-bydate-train/
   fi
-  echo "Testing on ${WORK_DIR}/20news-bydate/20news-bydate-test/ with model: /tmp/news-group.model"
-  ./bin/mahout org.apache.mahout.classifier.sgd.TestNewsGroups --input ${WORK_DIR}/20news-bydate/20news-bydate-test/ --model /tmp/news-group.model
+  echo "Testing on ${WORK_DIR}/edf-bydate/edf-bydate-test/ with model: /tmp/edf.model"
+  ./root/mahout_git/mahout/bin/mahout org.apache.mahout.classifier.sgd.TestNewsGroups --input ${WORK_DIR}/edf-bydate/edf-bydate-test/ --model /tmp/edf.model
 elif [ "x$alg" == "xclean" ]; then
-  rm -rf ${WORK_DIR}
-  rm -rf /tmp/news-group.model
 fi
 # Remove the work directory
 #

@@ -14,7 +14,6 @@ public class DataMapper extends Mapper<LongWritable, Text, Text, NullWritable> {
 
 	public void map(LongWritable key, Text value, Context context) throws IOException,
 			InterruptedException {
-		System.out.println("MAP CALLED");
 		String html = new String(value.toString());
 		Document doc = Jsoup.parse(html);
 		doc.body().select("script, jscript, style").remove();
@@ -24,12 +23,15 @@ public class DataMapper extends Mapper<LongWritable, Text, Text, NullWritable> {
 		
 	}
 	
+	/**
+	 * Clean data by removing html tags
+	 * @param textToClean
+	 * @return
+	 */
 	public static String cleanData(String textToClean) {
-		//System.out.println("Removing HTML tags");
 		Document doc = Jsoup.parse(textToClean);
 		doc.select("script, jscript, style").remove();
 		return doc.text();
-		//return Jsoup.parse(textToClean).text();
 	}
 
 }

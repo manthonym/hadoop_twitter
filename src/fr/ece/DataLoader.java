@@ -28,54 +28,11 @@ public class DataLoader extends Configured implements Tool  {
 
 	}
 	
+	/**
+	 * Running MapReduceJob
+	 */
 	public int run(String[] args) throws Exception{
-		/*
 
-		System.out.println("Program has started");
-		if(args.length == 0)
-	    {
-	        System.out.println("Proper Usage is: java -jar program_name directory outputfile");
-	        System.exit(0);
-	    }
-		System.out.println("Analyzing your files");
-		
-		listOfHTMLFiles = new ArrayList<String>();
-		File inputFile;
-		FileReader in;
-		BufferedReader br;
-
-		//File outputFile = new File("out.txt");
-		//FileWriter out;
-		BufferedWriter out;
-
-		String textToClean = "";
-		String currentLine;
-
-		// Get all HTML files
-		displayDirectoryContents(new File(args[0]));
-		
-		System.out.println("Found " + listOfHTMLFiles.size() + " files");
-
-		JobConf conf = new JobConf(DataLoader.class);
-
-		conf.setJobName("DataLoader");
-
-		for (int j = 0; j < listOfHTMLFiles.size(); j++) {
-		//FileInputFormat.addInputPath(conf, new Path(listOfHTMLFiles.get(j)));
-		}
-		FileInputFormat.addInputPath(conf, new Path(args[0]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
-
-		conf.setMapperClass(DataMapper.class);
-		conf.setNumReduceTasks(0);
-		//conf.setReducerClass(DataLoaderReducer.class);
-
-		conf.setOutputKeyClass(NullWritable.class);
-
-		conf.setOutputValueClass(Text.class);
-
-		JobClient.runJob(conf);
-		*/
 		Configuration conf = new Configuration();
         Job job = new Job(conf, "dataloader");
         job.setJarByClass(DataLoader.class);
@@ -96,44 +53,11 @@ public class DataLoader extends Configured implements Tool  {
 		return 0;
 		
 	}
-	/*
-	public static void main(String[] args) throws Exception {
-	    JobConf conf = new JobConf(DataLoader.class);
-	    conf.setJobName("wordcount");
-
-	    conf.setOutputKeyClass(Text.class);
-	    conf.setOutputValueClass(IntWritable.class);
-
-	    conf.setMapperClass(DataLoaderMapper.class);
-	    conf.setCombinerClass(DataLoaderReducer.class);
-	    conf.setReducerClass(DataLoaderReducer.class);
-
-	    conf.setInputFormat(TextInputFormat.class);
-	    conf.setOutputFormat(TextOutputFormat.class);
-	    
-	    String basePath = args[0];
-	    List<Path> inputhPaths = new ArrayList<Path>();
-	    FileSystem fs = FileSystem.get(conf);
-	    FileStatus[] listStatus = fs.globStatus(new Path(basePath + "/*"));
-	    for(FileStatus fstat : listStatus)
-	    {
-	    	if( fstat.isDir() )
-	    	{
-	    		//todo : recursivity
-	    	}
-	    	else
-	    	{
-	    		inputhPaths.add(fstat.getPath());
-	    	}
-	    }
-	    FileInputFormat.setInputPaths(conf, (Path[])inputhPaths.toArray(new Path[inputhPaths.size()]) );
-
-	    FileInputFormat.setInputPaths(conf, new Path(args[0]));
-	    FileOutputFormat.setOutputPath(conf, new Path(args[1]));
-
-	    JobClient.runJob(conf);
-	  }
-	*/
+	
+	/**
+	 * Get HTML files recursively by having the path
+	 * @param dir: path of the directory to look into
+	 */
 	public static void displayDirectoryContents(File dir) {
 		try {
 			File[] files = dir.listFiles();
